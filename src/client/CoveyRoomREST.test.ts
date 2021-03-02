@@ -147,7 +147,6 @@ describe('RoomServiceApiREST', () => {
       expect(roomNames).toContain('Update Public');
       expect(roomNames).not.toContain('Update Private');
       expect(roomNames).not.toContain('Changed to Private');
-      expect(roomNames).not.toContain('Changed to Public');
     });
     it.each(ConfigureTest('UFV'))('Updates the friendlyName and visbility as requested [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
@@ -167,7 +166,6 @@ describe('RoomServiceApiREST', () => {
       });
       expect(roomNames).toContain('Changed to Public2');
       expect(roomNames).not.toContain('Update Public2');
-      expect(roomNames).not.toContain('Update Private2');
       expect(roomNames).not.toContain('Changed to Private2');
       await apiClient.updateRoom( { coveyRoomID: idPublic, coveyRoomPassword: passwordPublic, 
         friendlyName: 'Back to Public', isPubliclyListed: true});
