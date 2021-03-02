@@ -166,7 +166,6 @@ describe('RoomServiceApiREST', () => {
       });
       expect(roomNames).toContain('Changed to Public2');
       expect(roomNames).not.toContain('Update Public2');
-      expect(roomNames).not.toContain('Changed to Private2');
       await apiClient.updateRoom( { coveyRoomID: idPublic, coveyRoomPassword: passwordPublic, 
         friendlyName: 'Back to Public', isPubliclyListed: true});
       rooms = await apiClient.listRooms();
