@@ -211,10 +211,13 @@ describe('RoomServiceApiREST', () => {
     it.each(ConfigureTest('MJPP'))('Admits a user to a valid public or private room [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
       const roomInfoPublic = await apiClient.createRoom({ friendlyName: 'Valid Public Room', isPubliclyListed: true });
+      const roomInfoPublic2 = await apiClient.createRoom({ friendlyName: 'Valid Public Room', isPubliclyListed: true });
       const roomInfoPrivate = await apiClient.createRoom({ friendlyName: 'Valid Private Room', isPubliclyListed: false });
       const idPublic = roomInfoPublic.coveyRoomID;
+      const idPublic2 = roomInfoPublic2.coveyRoomID;
       const idPrivate = roomInfoPrivate.coveyRoomID;
       apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic });
+      apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic2 });
       apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPrivate });
     });
   });
