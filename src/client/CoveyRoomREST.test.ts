@@ -66,12 +66,16 @@ describe('RoomServiceApiREST', () => {
     });
     it.each(ConfigureTest('LMF'))('Allows for multiple rooms with the same friendlyName [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
-      await apiClient.createRoom({ friendlyName: 'The Alamo', isPubliclyListed: true });
-      await apiClient.createRoom({ friendlyName: 'The Alamo', isPubliclyListed: true });
-      await apiClient.createRoom({ friendlyName: 'Room', isPubliclyListed: false });
-      await apiClient.createRoom({ friendlyName: 'Room', isPubliclyListed: true });
-      await apiClient.createRoom({ friendlyName: 'Private', isPubliclyListed: false });
-      await apiClient.createRoom({ friendlyName: 'Private', isPubliclyListed: false });
+      await apiClient.createRoom({ friendlyName: 'LMF Name duplicate', isPubliclyListed: true });
+      await apiClient.createRoom({ friendlyName: 'LMF Name duplicate', isPubliclyListed: true });
+      const result = await apiClient.listRooms();
+      const friendlyNames = result['rooms'].map((room) => {
+        return room.friendlyName;
+      })
+      expect(friendlyNames).toContain('LMF Name duplicate');
+      const index = friendlyNames.findIndex((name) => name === 'LMF Name duplicate');
+      friendlyNames.splice(index, 1);
+      expect(friendlyNames).toContain('LMF Name duplicate');
     });
   });
 
@@ -114,13 +118,12 @@ describe('RoomServiceApiREST', () => {
       await apiClient.deleteRoom({ coveyRoomID: idPublic, coveyRoomPassword: passwordPublic});
       await apiClient.deleteRoom({ coveyRoomID: idPrivate, coveyRoomPassword: passwordPrivate});
       await expect(apiClient.joinRoom({ userName: 'Ryan', coveyRoomID: idPublic})).rejects.toThrow();
-      await expect(apiClient.joinRoom({ userName: 'Master Chief', coveyRoomID: idPrivate})).rejects.toThrow();
+      await expect(apiClient.joinRoom({ userName: 'Amanda', coveyRoomID: idPrivate})).rejects.toThrow();
       const result = await apiClient.listRooms();
       const friendlyNames = result['rooms'].map((room) => {
         return room.friendlyName;
       });
       expect(friendlyNames).not.toContain('Delete Public3');
-      expect(friendlyNames).not.toContain('Delete Private3');
     });
   });
 
@@ -135,8 +138,12 @@ describe('RoomServiceApiREST', () => {
       const passwordPrivate = roomInfoPrivate.coveyRoomPassword;
       await expect(apiClient.updateRoom( { coveyRoomID: idPublic, coveyRoomPassword: passwordPrivate, 
         friendlyName: 'Changed to Private', isPubliclyListed: false})).rejects.toThrow();
+      await expect(apiClient.updateRoom( { coveyRoomID: idPublic, coveyRoomPassword: passwordPrivate, 
+        friendlyName: 'Changed to Private'})).rejects.toThrow();
       await expect(apiClient.updateRoom( { coveyRoomID: idPrivate, coveyRoomPassword: passwordPublic,
         friendlyName: 'Changed to Public', isPubliclyListed: true} )).rejects.toThrow();
+      await expect(apiClient.updateRoom( { coveyRoomID: idPrivate, coveyRoomPassword: passwordPublic,
+        isPubliclyListed: true} )).rejects.toThrow();
       const rooms = await apiClient.listRooms();
       const roomNames = rooms['rooms'].map((room) => {
         return room.friendlyName;
@@ -158,16 +165,21 @@ describe('RoomServiceApiREST', () => {
         friendlyName: 'Changed to Private2', isPubliclyListed: false});
       await apiClient.updateRoom( { coveyRoomID: idPrivate, coveyRoomPassword: passwordPrivate,
         friendlyName: 'Changed to Public2', isPubliclyListed: true});
-      const rooms = await apiClient.listRooms();
-      const roomNames = rooms['rooms'].map((room) => {
+      let rooms = await apiClient.listRooms();
+      let roomNames = rooms['rooms'].map((room) => {
         return room.friendlyName;
       });
-
       expect(roomNames).toContain('Changed to Public2');
       expect(roomNames).not.toContain('Update Public2');
       expect(roomNames).not.toContain('Update Private2');
       expect(roomNames).not.toContain('Changed to Private2');
- 
+      await apiClient.updateRoom( { coveyRoomID: idPublic, coveyRoomPassword: passwordPublic, 
+        friendlyName: 'Back to Public', isPubliclyListed: true});
+      rooms = await apiClient.listRooms();
+      roomNames = rooms['rooms'].map((room) => {
+        return room.friendlyName;
+      });
+      expect(roomNames).toContain('Back to Public');
     });
     it.each(ConfigureTest('UFVU'))('Does not update the visibility if visibility is undefined [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
