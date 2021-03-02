@@ -1,4 +1,4 @@
-import Express from 'express';
+import Express, { application } from 'express';
 import CORS from 'cors';
 import http from 'http';
 import { AddressInfo } from 'net';
@@ -120,7 +120,6 @@ describe('RoomServiceApiREST', () => {
       const friendlyNames = result['rooms'].map((room) => {
         return room.friendlyName;
       });
-      // expect(friendlyNames).not.toContain('Delete Public3');
     });
   });
 
@@ -205,12 +204,15 @@ describe('RoomServiceApiREST', () => {
   describe('CoveyMemberAPI', () => {
     it.each(ConfigureTest('MNSR'))('Throws an error if the room does not exist [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
-      expect(apiClient.joinRoom( { userName: 'Masterchief', coveyRoomID: '12345689891232323232322323232' } )).rejects.toThrow();
+      const roomInfoPublic = await apiClient.createRoom({ friendlyName: 'Enter Public', isPubliclyListed: true });
+      const idPublic = roomInfoPublic.coveyRoomID; 
+      await apiClient.deleteRoom( { coveyRoomID: idPublic, coveyRoomPassword: roomInfoPublic.coveyRoomPassword });
+      expect(apiClient.joinRoom( { userName: 'Masterchief', coveyRoomID: idPublic } )).rejects.toThrow();
     });
     it.each(ConfigureTest('MJPP'))('Admits a user to a valid public or private room [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
-      const roomInfoPublic = await apiClient.createRoom({ friendlyName: 'Update Public3', isPubliclyListed: true });
-      const roomInfoPrivate = await apiClient.createRoom({ friendlyName: 'Update Private3', isPubliclyListed: false });
+      const roomInfoPublic = await apiClient.createRoom({ friendlyName: 'Valid Public Room', isPubliclyListed: true });
+      const roomInfoPrivate = await apiClient.createRoom({ friendlyName: 'Valid Private Room', isPubliclyListed: false });
       const idPublic = roomInfoPublic.coveyRoomID;
       const idPrivate = roomInfoPrivate.coveyRoomID;
       apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic });
