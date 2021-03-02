@@ -213,12 +213,20 @@ describe('RoomServiceApiREST', () => {
       const roomInfoPublic = await apiClient.createRoom({ friendlyName: 'Valid Public Room', isPubliclyListed: true });
       const roomInfoPublic2 = await apiClient.createRoom({ friendlyName: 'Valid Public Room', isPubliclyListed: true });
       const roomInfoPrivate = await apiClient.createRoom({ friendlyName: 'Valid Private Room', isPubliclyListed: false });
+      const roomInfoPrivate2 = await apiClient.createRoom({ friendlyName: 'Valid Private Room', isPubliclyListed: false });
+      const roomInfoPublic3 = await apiClient.createRoom({ friendlyName: '3', isPubliclyListed: true });
       const idPublic = roomInfoPublic.coveyRoomID;
       const idPublic2 = roomInfoPublic2.coveyRoomID;
+      const idPublic3 = roomInfoPublic3.coveyRoomID;
       const idPrivate = roomInfoPrivate.coveyRoomID;
+      const idPrivate2 = roomInfoPrivate2.coveyRoomID;
+      await apiClient.updateRoom( { coveyRoomID: idPublic, coveyRoomPassword: roomInfoPublic.coveyRoomPassword, 
+        friendlyName: 'Changed to Private2', isPubliclyListed: false});
       apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic });
       apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic2 });
       apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPrivate });
+      apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPrivate2 });
+      apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic3 });
     });
   });
 });
