@@ -218,13 +218,23 @@ describe('CoveyRoomController', () => {
         /* Hint: find the on('disconnect') handler that CoveyRoomController registers on the socket, and then
            call that handler directly to simulate a real socket disconnecting.
            */
+      // beforeEach(async () => {
+        beforeEach(async () => {
+          room.destroySession(playerSession);
+          mockSocket.on.mock.calls.forEach((call) => {
+            if (call[0] === 'disconnect') {
+              call[1]();
+            }
+          });
+        })
         it.each(ConfigureTest('SUBDCRL'))('should remove the room listener for that socket, and stop sending events to it [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
-
+         room.updatePlayerLocation(secondPlayer, location);
+          expect(mockSocket.emit).not.toHaveBeenCalledWith('playerMoved', secondPlayer);
         });
         it.each(ConfigureTest('SUBDCSE'))('should destroy the session corresponding to that socket [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
-
+          expect(room.getSessionByToken(session.sessionToken)).toBeUndefined();
         });
       });
       it.each(ConfigureTest('SUBMVL'))('should forward playerMovement events from the socket to subscribed listeners [%s]', async (testConfiguration: string) => {
@@ -236,5 +246,4 @@ describe('CoveyRoomController', () => {
       });
     });
   });
-
 });
