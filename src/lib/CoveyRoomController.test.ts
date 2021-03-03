@@ -210,7 +210,9 @@ describe('CoveyRoomController', () => {
       });
       it.each(ConfigureTest('SUBRC'))('should add a room listener, which should emit "roomClosing" to the socket and disconnect it when disconnectAllPlayers is called [%s]', async (testConfiguration: string) => {
         StartTest(testConfiguration);
-
+        room.disconnectAllPlayers();
+        expect(mockSocket.emit).toHaveBeenCalledWith('roomClosing');
+        expect(mockSocket.disconnect).toHaveBeenCalled();
       });
       describe('when a socket disconnect event is fired', () => {
         /* Hint: find the on('disconnect') handler that CoveyRoomController registers on the socket, and then
