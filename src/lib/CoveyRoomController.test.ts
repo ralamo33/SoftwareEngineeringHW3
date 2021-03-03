@@ -23,11 +23,19 @@ TwilioVideo.getInstance = () => ({
 
 
 
+
 describe('CoveyRoomController', () => {
   const friendlyName = 'Friendly Name';
   const room = CoveyRoomsStore.getInstance().createRoom(friendlyName, false);
   const roomId = room.coveyRoomID;
   const player = new Player('masterchief');
+  const front: Direction = 'front';
+  const location: UserLocation = {
+        x: 100,
+        y: 100,
+        rotation: front,
+        moving: true,
+  };
   beforeEach(() => {
     // Reset any logged invocations of getTokenForRoom before each test
     mockGetTokenForRoom.mockClear();
@@ -50,7 +58,6 @@ describe('CoveyRoomController', () => {
     const mockListeners = [mock<CoveyRoomListener>(),
       mock<CoveyRoomListener>(),
       mock<CoveyRoomListener>()];
-    const testMock = mock<CoveyRoomListener>();
     const friendlyName = 'Friendly Name';
     const room = CoveyRoomsStore.getInstance().createRoom(friendlyName, false);
     mockListeners.forEach((listener) => {
@@ -63,12 +70,6 @@ describe('CoveyRoomController', () => {
     it.each(ConfigureTest('RLEMV'))('should notify added listeners of player movement when updatePlayerLocation is called [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
       const front: Direction = 'front';
-      const location: UserLocation = {
-        x: 100,
-        y: 100,
-        rotation: front,
-        moving: true,
-      };
       room.updatePlayerLocation(player, location);
       mockListeners.forEach((listener) => expect(listener.onPlayerMoved).toHaveBeenCalled());
     });
@@ -90,13 +91,7 @@ describe('CoveyRoomController', () => {
     it.each(ConfigureTest('RLEMVN'))('should not notify removed listeners of player movement when updatePlayerLocation is called [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
       const removedListeners = removeListeners(room, mockListeners);
-      const front: Direction = 'front';
-      const location: UserLocation = {
-        x: 100,
-        y: 100,
-        rotation: front,
-        moving: true,
-      };
+
       await room.updatePlayerLocation(player, location);
       removedListeners.forEach((listener) => expect(listener.onPlayerMoved).not.toHaveBeenCalled());
     });
@@ -165,6 +160,7 @@ describe('CoveyRoomController', () => {
       StartTest(testConfiguration);
       mockSocket.handshake.auth = jest.fn(() => [sessionToken, 'INv@d1d Room 1d']);
       roomSubscriptionHandler(mockSocket);
+      mockSocket.emit;
       expect(mockSocket.disconnect).toHaveBeenCalled();
    });
     it.each(ConfigureTest('SUBKTDC'))('should reject connections with invalid session tokens by calling disconnect [%s]', async (testConfiguration: string) => {
@@ -180,25 +176,37 @@ describe('CoveyRoomController', () => {
 
         Your tests should perform operations on testingRoom, and make expectations about what happens to the mock socket.
        */
-      let connectedPlayer;
+      let connectedPlayer: Player;
+      let secondPlayer: Player;
+      let session: PlayerSession;
+      let secondSession: PlayerSession;
       beforeEach(async () => {
         connectedPlayer = new Player(`test player ${nanoid()}`);
-        const session = await room.addPlayer(connectedPlayer);
+        session = await room.addPlayer(connectedPlayer);
         TestUtils.setSessionTokenAndRoomID(room.coveyRoomID, session.sessionToken, mockSocket);
         roomSubscriptionHandler(mockSocket);
+        secondPlayer = new Player('newPlayer');
+        secondSession = await room.addPlayer(secondPlayer);
       });
       it.each(ConfigureTest('SUBNP'))('should add a room listener, which should emit "newPlayer" to the socket when a player joins [%s]', async (testConfiguration: string) => {
         StartTest(testConfiguration);
-        const mockListener = mock<CoveyRoomListener>();
-        room.addRoomListener(mockListener);
+        const newPlayer = new Player('newPlayer');
+        await room.addPlayer(newPlayer);
+        expect(mockSocket.emit).toHaveBeenCalledWith('newPlayer', newPlayer);
       });
       it.each(ConfigureTest('SUBMV'))('should add a room listener, which should emit "playerMoved" to the socket when a player moves [%s]', async (testConfiguration: string) => {
         StartTest(testConfiguration);
-
+        room.updatePlayerLocation(connectedPlayer, location);
+        expect(mockSocket.emit).toHaveBeenCalledWith('playerMoved', connectedPlayer);
+        room.updatePlayerLocation(secondPlayer, location);
+        expect(mockSocket.emit).toHaveBeenCalledWith('playerMoved', secondPlayer);
       });
       it.each(ConfigureTest('SUBDC'))('should add a room listener, which should emit "playerDisconnect" to the socket when a player disconnects [%s]', async (testConfiguration: string) => {
         StartTest(testConfiguration);
-
+        room.destroySession(secondSession);
+        expect(mockSocket.emit).toHaveBeenCalledWith('playerDisconnect', secondPlayer);
+        room.destroySession(session);
+        expect(mockSocket.emit).toHaveBeenCalledWith('playerDisconnect', connectedPlayer);
       });
       it.each(ConfigureTest('SUBRC'))('should add a room listener, which should emit "roomClosing" to the socket and disconnect it when disconnectAllPlayers is called [%s]', async (testConfiguration: string) => {
         StartTest(testConfiguration);
