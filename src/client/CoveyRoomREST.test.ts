@@ -1,4 +1,4 @@
-import Express, { application } from 'express';
+import Express, { application, response } from 'express';
 import CORS from 'cors';
 import http from 'http';
 import { AddressInfo } from 'net';
@@ -203,10 +203,11 @@ describe('RoomServiceApiREST', () => {
       StartTest(testConfiguration);
       const roomInfoPublic = await apiClient.createRoom({ friendlyName: 'Enter Public', isPubliclyListed: true });
       const idPublic = roomInfoPublic.coveyRoomID; 
+      console.log(idPublic)
       await apiClient.deleteRoom( { coveyRoomID: idPublic, coveyRoomPassword: roomInfoPublic.coveyRoomPassword });
       expect(apiClient.joinRoom( { userName: 'Masterchief', coveyRoomID: idPublic } )).rejects.toThrow();
-      expect(apiClient.joinRoom( { userName: 'Masterchief', coveyRoomID: 'dfjalkjbnda' } )).rejects.toThrow();
-      expect(apiClient.joinRoom( { userName: 'Masterchief', coveyRoomID: '' } )).rejects.toThrow();
+      expect(apiClient.joinRoom( { userName: 'Ryan', coveyRoomID: 'NWmH2pUTIC-L' } )).rejects.toThrow();
+      expect(apiClient.joinRoom( { userName: 'blair', coveyRoomID: '' } )).rejects.toThrow();
     });
     it.each(ConfigureTest('MJPP'))('Admits a user to a valid public or private room [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
@@ -222,11 +223,13 @@ describe('RoomServiceApiREST', () => {
       const idPrivate2 = roomInfoPrivate2.coveyRoomID;
       await apiClient.updateRoom( { coveyRoomID: idPublic, coveyRoomPassword: roomInfoPublic.coveyRoomPassword, 
         friendlyName: 'Changed to Private2', isPubliclyListed: false});
-      apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic });
-      apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic2 });
-      apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPrivate });
-      apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPrivate2 });
-      apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic3 });
+      await apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic });
+      await apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic2 });
+      await apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPrivate });
+      await apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPrivate2 });
+      await apiClient.joinRoom({ userName: 'Ryan', coveyRoomID: idPublic3 });
+      const response = await apiClient.joinRoom({ userName: 'Masterchief', coveyRoomID: idPublic3 });
+      expect(response.currentPlayers.length).toEqual(2);
     });
   });
 });
