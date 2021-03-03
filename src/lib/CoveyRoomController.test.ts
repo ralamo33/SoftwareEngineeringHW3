@@ -239,7 +239,13 @@ describe('CoveyRoomController', () => {
       });
       it.each(ConfigureTest('SUBMVL'))('should forward playerMovement events from the socket to subscribed listeners [%s]', async (testConfiguration: string) => {
         StartTest(testConfiguration);
-
+          mockSocket.on.mock.calls.forEach((call) => {
+            if (call[0] === 'playerMovement') {
+              console.log('Movement');
+              call[1](location);
+            }
+          });
+        expect(mockSocket.emit).toHaveBeenCalledWith('playerMoved', connectedPlayer);
         /* Hint: find the on('playerMovement') handler that CoveyRoomController registers on the socket, and then
            call that handler directly to simulate a real socket sending a user's movement event.
            */
