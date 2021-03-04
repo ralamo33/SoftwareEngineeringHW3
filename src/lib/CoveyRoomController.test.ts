@@ -236,8 +236,8 @@ describe('CoveyRoomController', () => {
           mockClear(mockSocket);
           mockReset(mockSocket);
           const thirdPlayer = new Player('Third');
-          room.updatePlayerLocation(thirdPlayer, location);
           room.addPlayer(thirdPlayer);
+          room.updatePlayerLocation(thirdPlayer, location);
           room.destroySession(secondSession);
           room.disconnectAllPlayers();
           expect(mockSocket.emit).not.toHaveBeenCalledWith('playerMoved', thirdPlayer);
@@ -247,7 +247,7 @@ describe('CoveyRoomController', () => {
         });
         it.each(ConfigureTest('SUBDCSE'))('should destroy the session corresponding to that socket [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
-          console.log(room.getSessionByToken(sessionToken));
+          expect(room.getSessionByToken(sessionToken)).toBeUndefined();
         });
       });
       it.each(ConfigureTest('SUBMVL'))('should forward playerMovement events from the socket to subscribed listeners [%s]', async (testConfiguration: string) => {
