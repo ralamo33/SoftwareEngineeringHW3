@@ -1,4 +1,4 @@
-import { mock, mockReset } from 'jest-mock-extended';
+import { mock, mockClear, mockReset } from 'jest-mock-extended';
 import { Socket } from 'socket.io';
 import { nanoid } from 'nanoid';
 import TwilioVideo from './TwilioVideo';
@@ -235,6 +235,8 @@ describe('CoveyRoomController', () => {
           room.updatePlayerLocation(thirdPlayer, location);
           room.addPlayer(thirdPlayer);
           room.destroySession(secondSession);
+          mockClear(mockSocket);
+          mockReset(mockSocket);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('playerMoved', thirdPlayer);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('newPlayer', thirdPlayer);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('playerDisconnect', secondPlayer);
