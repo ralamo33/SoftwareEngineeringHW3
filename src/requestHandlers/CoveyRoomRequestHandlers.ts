@@ -192,7 +192,9 @@ function roomSocketAdapter(socket: Socket): CoveyRoomListener {
 export function roomSubscriptionHandler(socket: Socket): void {
   // Parse the client's session token from the connection
   // For each player, the session token should be the same string returned by joinRoomHandler
+  console.log(socket.handshake.auth)
   const { token, coveyRoomID } = socket.handshake.auth as { token: string; coveyRoomID: string };
+
 
   // Right now, we only support a single room, so there is only a single CoveyRoomController
   const roomController = CoveyRoomsStore.getInstance()

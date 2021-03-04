@@ -43,6 +43,8 @@ describe('CoveyRoomController', () => {
   it.each(ConfigureTest('CRCC'))('constructor should set the friendlyName property [%s]', (testConfiguration: string) => {
     StartTest(testConfiguration);
     expect(room.friendlyName).toBe(friendlyName);
+    const newRoom = new CoveyRoomController('Your True Name', false);
+    expect(newRoom.friendlyName).toBe('Your True Name');
   });
   describe('addPlayer', () => {
     it.each(ConfigureTest('CRCAP'))('should use the coveyRoomID and player ID properties when requesting a video token [%s]',
@@ -141,10 +143,10 @@ describe('CoveyRoomController', () => {
     the roomSubscriptionHandler method. Ripley's provided some boilerplate code for you to make this a bit easier.
      */
     let room: CoveyRoomController;
-    let roomId: String;
+    let roomId: string;
     let player: Player;
     let playerSession: PlayerSession;
-    let sessionToken: String;
+    let sessionToken: string;
     beforeEach(async () => {
       const roomName = `connectPlayerSocket tests ${nanoid()}`;
       // Create a new room to use for each test
@@ -153,19 +155,23 @@ describe('CoveyRoomController', () => {
       player = new Player('masterchief');
       playerSession = await room.addPlayer(player);
       sessionToken = playerSession.sessionToken;
+      TestUtils.setSessionTokenAndRoomID(sessionToken, roomId, mockSocket);
       // Reset the log on the mock socket
       mockReset(mockSocket);
     });
     it.each(ConfigureTest('SUBIDDC'))('should reject connections with invalid room IDs by calling disconnect [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
-      mockSocket.handshake.auth = jest.fn(() => [sessionToken, 'INv@d1d Room 1d']);
+      mockSocket.handshake.auth = { token: sessionToken, coveyRoomID: 'Wrong ID' };
       roomSubscriptionHandler(mockSocket);
       mockSocket.emit;
       expect(mockSocket.disconnect).toHaveBeenCalled();
    });
     it.each(ConfigureTest('SUBKTDC'))('should reject connections with invalid session tokens by calling disconnect [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
-      mockSocket.handshake.auth = jest.fn(() => ['Invalid Token', roomId]);
+      mockSocket.handshake.auth = { token: 'Wrong Session', coveyRoomID: roomId };
+      console.log('This one matters');
+      console.log(room.coveyRoomID);
+      console.log(sessionToken);
       roomSubscriptionHandler(mockSocket);
       expect(mockSocket.disconnect).toHaveBeenCalled();
    });
