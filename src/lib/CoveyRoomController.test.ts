@@ -235,8 +235,13 @@ describe('CoveyRoomController', () => {
         })
         it.each(ConfigureTest('SUBDCRL'))('should remove the room listener for that socket, and stop sending events to it [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
-         room.updatePlayerLocation(secondPlayer, location);
+          const thirdPlayer = new Player('Third');
+          room.updatePlayerLocation(secondPlayer, location);
+          room.addPlayer(thirdPlayer);
+          room.destroySession(secondSession);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('playerMoved', secondPlayer);
+          expect(mockSocket.emit).not.toHaveBeenCalledWith('newPlayer', thirdPlayer);
+          expect(mockSocket.emit).not.toHaveBeenCalledWith('playerDisconnect', secondPlayer);
         });
         it.each(ConfigureTest('SUBDCSE'))('should destroy the session corresponding to that socket [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
