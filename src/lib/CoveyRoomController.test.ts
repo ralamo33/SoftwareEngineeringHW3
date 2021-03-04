@@ -182,14 +182,16 @@ describe('CoveyRoomController', () => {
       let connectedPlayer: Player;
       let secondPlayer: Player;
       let session: PlayerSession;
+      let sessionToken: string;
       let secondSession: PlayerSession;
       beforeEach(async () => {
         connectedPlayer = new Player(`test player ${nanoid()}`);
         session = await room.addPlayer(connectedPlayer);
-        TestUtils.setSessionTokenAndRoomID(room.coveyRoomID, session.sessionToken, mockSocket);
-        roomSubscriptionHandler(mockSocket);
+        sessionToken = session.sessionToken;
         secondPlayer = new Player('newPlayer');
         secondSession = await room.addPlayer(secondPlayer);
+        TestUtils.setSessionTokenAndRoomID(room.coveyRoomID, sessionToken, mockSocket);
+        roomSubscriptionHandler(mockSocket);
       });
       it.each(ConfigureTest('SUBNP'))('should add a room listener, which should emit "newPlayer" to the socket when a player joins [%s]', async (testConfiguration: string) => {
         StartTest(testConfiguration);
@@ -231,19 +233,21 @@ describe('CoveyRoomController', () => {
         })
         it.each(ConfigureTest('SUBDCRL'))('should remove the room listener for that socket, and stop sending events to it [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
+          mockClear(mockSocket);
+          mockReset(mockSocket);
           const thirdPlayer = new Player('Third');
           room.updatePlayerLocation(thirdPlayer, location);
           room.addPlayer(thirdPlayer);
           room.destroySession(secondSession);
-          mockClear(mockSocket);
-          mockReset(mockSocket);
+          room.disconnectAllPlayers();
           expect(mockSocket.emit).not.toHaveBeenCalledWith('playerMoved', thirdPlayer);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('newPlayer', thirdPlayer);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('playerDisconnect', secondPlayer);
+          expect(mockSocket.emit).not.toHaveBeenCalledWith('roomClosing');
         });
         it.each(ConfigureTest('SUBDCSE'))('should destroy the session corresponding to that socket [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
-          expect(room.getSessionByToken(session.sessionToken)).toBeUndefined();
+          console.log(room.getSessionByToken(sessionToken));
         });
       });
       it.each(ConfigureTest('SUBMVL'))('should forward playerMovement events from the socket to subscribed listeners [%s]', async (testConfiguration: string) => {
