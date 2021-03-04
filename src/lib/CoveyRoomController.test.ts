@@ -169,9 +169,6 @@ describe('CoveyRoomController', () => {
     it.each(ConfigureTest('SUBKTDC'))('should reject connections with invalid session tokens by calling disconnect [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
       mockSocket.handshake.auth = { token: 'Wrong Session', coveyRoomID: roomId };
-      console.log('This one matters');
-      console.log(room.coveyRoomID);
-      console.log(sessionToken);
       roomSubscriptionHandler(mockSocket);
       expect(mockSocket.disconnect).toHaveBeenCalled();
    });
@@ -226,7 +223,6 @@ describe('CoveyRoomController', () => {
            */
       // beforeEach(async () => {
         beforeEach(async () => {
-          room.destroySession(playerSession);
           mockSocket.on.mock.calls.forEach((call) => {
             if (call[0] === 'disconnect') {
               call[1]();
@@ -236,10 +232,10 @@ describe('CoveyRoomController', () => {
         it.each(ConfigureTest('SUBDCRL'))('should remove the room listener for that socket, and stop sending events to it [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
           const thirdPlayer = new Player('Third');
-          room.updatePlayerLocation(secondPlayer, location);
+          room.updatePlayerLocation(thirdPlayer, location);
           room.addPlayer(thirdPlayer);
           room.destroySession(secondSession);
-          expect(mockSocket.emit).not.toHaveBeenCalledWith('playerMoved', secondPlayer);
+          expect(mockSocket.emit).not.toHaveBeenCalledWith('playerMoved', thirdPlayer);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('newPlayer', thirdPlayer);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('playerDisconnect', secondPlayer);
         });
@@ -252,14 +248,10 @@ describe('CoveyRoomController', () => {
         StartTest(testConfiguration);
           mockSocket.on.mock.calls.forEach((call) => {
             if (call[0] === 'playerMovement') {
-              console.log('Movement');
               call[1](location);
             }
           });
         expect(mockSocket.emit).toHaveBeenCalledWith('playerMoved', connectedPlayer);
-        /* Hint: find the on('playerMovement') handler that CoveyRoomController registers on the socket, and then
-           call that handler directly to simulate a real socket sending a user's movement event.
-           */
       });
     });
   });
