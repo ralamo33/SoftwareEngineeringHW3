@@ -214,17 +214,18 @@ describe('CoveyRoomController', () => {
         /* Hint: find the on('disconnect') handler that CoveyRoomController registers on the socket, and then
            call that handler directly to simulate a real socket disconnecting.
            */
+        let disconnectHandler: () => void;
         beforeEach(() => {
-          let go = true;
           mockSocket.on.mock.calls.forEach(async (call) => {
-            if (go && call[0] === 'disconnect') {
-              call[1]();
-              go = false;
+            if (call[0] === 'disconnect') {
+              disconnectHandler = call[1];
             }
           });
         });
         it.each(ConfigureTest('SUBDCRL'))('should remove the room listener for that socket, and stop sending events to it [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
+          expect(disconnectHandler).toBeTruthy();
+          disconnectHandler();
           const thirdPlayer = new Player('Third');
           await room.addPlayer(thirdPlayer);
           room.updatePlayerLocation(thirdPlayer, location);
@@ -233,8 +234,10 @@ describe('CoveyRoomController', () => {
         });
         it.each(ConfigureTest('SUBDCSE'))('should destroy the session corresponding to that socket [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
+          expect(disconnectHandler).toBeTruthy();
+          disconnectHandler();
           expect(room.getSessionByToken(secondSession.sessionToken)).not.toBeUndefined;
-          // expect(room.getSessionByToken(sessionToken)).toBeUndefined();
+          expect(room.getSessionByToken(sessionToken)).toBeUndefined();
         });
       });
       it.each(ConfigureTest('SUBMVL'))('should forward playerMovement events from the socket to subscribed listeners [%s]', async (testConfiguration: string) => {
