@@ -1,4 +1,4 @@
-import { mock, mockClear, mockReset } from 'jest-mock-extended';
+import { mock, mockReset } from 'jest-mock-extended';
 import { Socket } from 'socket.io';
 import { nanoid } from 'nanoid';
 import TwilioVideo from './TwilioVideo';
@@ -218,7 +218,6 @@ describe('CoveyRoomController', () => {
           mockSocket.on.mock.calls.forEach(async (call) => {
             if (call[0] === 'disconnect') {
               await call[1]();
-              console.log('Found the disconnect')
             }
           });
         });
@@ -228,11 +227,8 @@ describe('CoveyRoomController', () => {
           await room.addPlayer(thirdPlayer);
           room.updatePlayerLocation(thirdPlayer, location);
           room.destroySession(secondSession);
-          room.disconnectAllPlayers();
-          expect(mockSocket.emit).not.toHaveBeenCalledWith('playerMoved', thirdPlayer);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('newPlayer', thirdPlayer);
           expect(mockSocket.emit).not.toHaveBeenCalledWith('playerDisconnect', secondPlayer);
-          expect(mockSocket.emit).not.toHaveBeenCalledWith('roomClosing');
         });
         it.each(ConfigureTest('SUBDCSE'))('should destroy the session corresponding to that socket [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
