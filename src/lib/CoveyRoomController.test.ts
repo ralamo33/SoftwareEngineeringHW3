@@ -214,18 +214,16 @@ describe('CoveyRoomController', () => {
         /* Hint: find the on('disconnect') handler that CoveyRoomController registers on the socket, and then
            call that handler directly to simulate a real socket disconnecting.
            */
-        // beforeEach(async () => {
         beforeEach(async () => {
-          mockSocket.on.mock.calls.forEach((call) => {
+          mockSocket.on.mock.calls.forEach(async (call) => {
             if (call[0] === 'disconnect') {
-              call[1]();
+              await call[1]();
+              console.log('Found the disconnect')
             }
           });
         });
         it.each(ConfigureTest('SUBDCRL'))('should remove the room listener for that socket, and stop sending events to it [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
-          mockClear(mockSocket);
-          mockReset(mockSocket);
           const thirdPlayer = new Player('Third');
           await room.addPlayer(thirdPlayer);
           room.updatePlayerLocation(thirdPlayer, location);

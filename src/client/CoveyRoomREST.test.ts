@@ -183,7 +183,6 @@ describe('RoomServiceApiREST', () => {
   });
 
   describe('CoveyMemberAPI', () => {
-    // This test fails when there are no faults. Remove tests until this is solved
     it.each(ConfigureTest('MNSR'))('Throws an error if the room does not exist [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
       let roomInfoPublic = await apiClient.createRoom({ friendlyName: 'Enter Public', isPubliclyListed: true });
