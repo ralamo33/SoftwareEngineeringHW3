@@ -221,7 +221,7 @@ describe('CoveyRoomController', () => {
               call[1]();
             }
           });
-        })
+        });
         it.each(ConfigureTest('SUBDCRL'))('should remove the room listener for that socket, and stop sending events to it [%s]', async (testConfiguration: string) => {
           StartTest(testConfiguration);
           mockClear(mockSocket);
