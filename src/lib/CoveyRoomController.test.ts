@@ -21,20 +21,34 @@ TwilioVideo.getInstance = () => ({
   getTokenForRoom: mockGetTokenForRoom,
 });
 
+  /**
+   * Remove the listeners from the room
+   * @param room Where the listeners will be removed from
+   * @param mockListeners The listeners to be removed
+   * @returns The listeners that were removed
+   */
+  function removeListeners(room: CoveyRoomController, mockListeners: CoveyRoomListener[]): CoveyRoomListener[] {
+    const removeListener1 = mockListeners[0];
+    const removeListener2 = mockListeners[2];
+    room.removeRoomListener(removeListener1);
+    room.removeRoomListener(removeListener2);
+    return [removeListener1, removeListener2];
+  }
+
 
 
 
 describe('CoveyRoomController', () => {
   const friendlyName = 'Friendly Name';
-  const room = CoveyRoomsStore.getInstance().createRoom(friendlyName, false);
-  const roomId = room.coveyRoomID;
-  const player = new Player('masterchief');
+  let room = CoveyRoomsStore.getInstance().createRoom(friendlyName, false);
+  let roomId = room.coveyRoomID;
+  let player = new Player('masterchief');
   const front: Direction = 'front';
   const location: UserLocation = {
-        x: 100,
-        y: 100,
-        rotation: front,
-        moving: true,
+    x: 100,
+    y: 100,
+    rotation: front,
+    moving: true,
   };
   beforeEach(() => {
     // Reset any logged invocations of getTokenForRoom before each test
@@ -60,18 +74,14 @@ describe('CoveyRoomController', () => {
     const mockListeners = [mock<CoveyRoomListener>(),
       mock<CoveyRoomListener>(),
       mock<CoveyRoomListener>()];
-    const friendlyName = 'Friendly Name';
-    const room = CoveyRoomsStore.getInstance().createRoom(friendlyName, false);
     mockListeners.forEach((listener) => {
       room.addRoomListener(listener);
     });
-    const player = new Player('masterchief');
     beforeEach(() => {
       mockListeners.forEach(mockReset);
     });
     it.each(ConfigureTest('RLEMV'))('should notify added listeners of player movement when updatePlayerLocation is called [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
-      const front: Direction = 'front';
       room.updatePlayerLocation(player, location);
       mockListeners.forEach((listener) => expect(listener.onPlayerMoved).toHaveBeenCalled());
     });
@@ -117,20 +127,6 @@ describe('CoveyRoomController', () => {
     });
   });
 
-  /**
-   * 
-   * @param room Where the listeners will be removed from
-   * @param mockListeners The listeners to be removed
-   * @returns The listeners that were removed
-   */
-  function removeListeners(room: CoveyRoomController, mockListeners: CoveyRoomListener[]): CoveyRoomListener[] {
-      const removeListener1 = mockListeners[0];
-      const removeListener2 = mockListeners[2];
-      room.removeRoomListener(removeListener1);
-      room.removeRoomListener(removeListener2);
-      return [removeListener1, removeListener2];
-  }
-
   describe('roomSubscriptionHandler', () => {
     /* Set up a mock socket, which you may find to be useful for testing the events that get sent back out to the client
     by the code in CoveyRoomController calling socket.emit.each(ConfigureTest(''))('event', payload) - if you pass the mock socket in place of
@@ -142,9 +138,6 @@ describe('CoveyRoomController', () => {
     that interact with the socket, we need to: 1. Get a CoveyRoomController from the CoveyRoomsStore, and then 2: call
     the roomSubscriptionHandler method. Ripley's provided some boilerplate code for you to make this a bit easier.
      */
-    let room: CoveyRoomController;
-    let roomId: string;
-    let player: Player;
     let playerSession: PlayerSession;
     let sessionToken: string;
     beforeEach(async () => {
@@ -163,15 +156,14 @@ describe('CoveyRoomController', () => {
       StartTest(testConfiguration);
       mockSocket.handshake.auth = { token: sessionToken, coveyRoomID: 'Wrong ID' };
       roomSubscriptionHandler(mockSocket);
-      mockSocket.emit;
       expect(mockSocket.disconnect).toHaveBeenCalled();
-   });
+    });
     it.each(ConfigureTest('SUBKTDC'))('should reject connections with invalid session tokens by calling disconnect [%s]', async (testConfiguration: string) => {
       StartTest(testConfiguration);
       mockSocket.handshake.auth = { token: 'Wrong Session', coveyRoomID: roomId };
       roomSubscriptionHandler(mockSocket);
       expect(mockSocket.disconnect).toHaveBeenCalled();
-   });
+    });
     describe('with a valid session token', () => {
       /*
         Ripley says that you might find this helper code useful: it will create a valid session, configure the mock socket
@@ -182,7 +174,6 @@ describe('CoveyRoomController', () => {
       let connectedPlayer: Player;
       let secondPlayer: Player;
       let session: PlayerSession;
-      let sessionToken: string;
       let secondSession: PlayerSession;
       beforeEach(async () => {
         connectedPlayer = new Player(`test player ${nanoid()}`);
@@ -223,7 +214,7 @@ describe('CoveyRoomController', () => {
         /* Hint: find the on('disconnect') handler that CoveyRoomController registers on the socket, and then
            call that handler directly to simulate a real socket disconnecting.
            */
-      // beforeEach(async () => {
+        // beforeEach(async () => {
         beforeEach(async () => {
           mockSocket.on.mock.calls.forEach((call) => {
             if (call[0] === 'disconnect') {
@@ -236,7 +227,7 @@ describe('CoveyRoomController', () => {
           mockClear(mockSocket);
           mockReset(mockSocket);
           const thirdPlayer = new Player('Third');
-          room.addPlayer(thirdPlayer);
+          await room.addPlayer(thirdPlayer);
           room.updatePlayerLocation(thirdPlayer, location);
           room.destroySession(secondSession);
           room.disconnectAllPlayers();
@@ -252,11 +243,11 @@ describe('CoveyRoomController', () => {
       });
       it.each(ConfigureTest('SUBMVL'))('should forward playerMovement events from the socket to subscribed listeners [%s]', async (testConfiguration: string) => {
         StartTest(testConfiguration);
-          mockSocket.on.mock.calls.forEach((call) => {
-            if (call[0] === 'playerMovement') {
-              call[1](location);
-            }
-          });
+        mockSocket.on.mock.calls.forEach((call) => {
+          if (call[0] === 'playerMovement') {
+            call[1](location);
+          }
+        });
         expect(mockSocket.emit).toHaveBeenCalledWith('playerMoved', connectedPlayer);
       });
     });
