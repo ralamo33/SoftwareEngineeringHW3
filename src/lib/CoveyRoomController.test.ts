@@ -238,7 +238,7 @@ describe('CoveyRoomController', () => {
           StartTest(testConfiguration);
           expect(disconnectHandler).toBeTruthy();
           disconnectHandler();
-          expect(room.getSessionByToken(secondSession.sessionToken)).not.toBeUndefined;
+          expect(room.getSessionByToken(secondSession.sessionToken)).not.toBeUndefined();
           expect(room.getSessionByToken(sessionToken)).toBeUndefined();
         });
       });
