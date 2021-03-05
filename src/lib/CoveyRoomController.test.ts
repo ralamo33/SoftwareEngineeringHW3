@@ -21,19 +21,19 @@ TwilioVideo.getInstance = () => ({
   getTokenForRoom: mockGetTokenForRoom,
 });
 
-  /**
-   * Remove the listeners from the room
-   * @param room Where the listeners will be removed from
-   * @param mockListeners The listeners to be removed
-   * @returns The listeners that were removed
-   */
-  function removeListeners(room: CoveyRoomController, mockListeners: CoveyRoomListener[]): CoveyRoomListener[] {
-    const removeListener1 = mockListeners[0];
-    const removeListener2 = mockListeners[2];
-    room.removeRoomListener(removeListener1);
-    room.removeRoomListener(removeListener2);
-    return [removeListener1, removeListener2];
-  }
+/**
+ * Remove the listeners from the room
+ * @param room Where the listeners will be removed from
+ * @param mockListeners The listeners to be removed
+ * @returns The listeners that were removed
+ */
+function removeListeners(room: CoveyRoomController, mockListeners: CoveyRoomListener[]): CoveyRoomListener[] {
+  const removeListener1 = mockListeners[0];
+  const removeListener2 = mockListeners[2];
+  room.removeRoomListener(removeListener1);
+  room.removeRoomListener(removeListener2);
+  return [removeListener1, removeListener2];
+}
 
 
 
