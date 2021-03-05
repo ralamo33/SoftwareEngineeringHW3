@@ -215,10 +215,12 @@ describe('CoveyRoomController', () => {
            call that handler directly to simulate a real socket disconnecting.
            */
         let disconnectHandler: () => void;
+        const idx = 1;
         beforeEach(() => {
+          mockSocket.disconnect();
           mockSocket.on.mock.calls.forEach(async (call) => {
             if (call[0] === 'disconnect') {
-              disconnectHandler = call[1];
+              disconnectHandler = call[idx];
             }
           });
         });
